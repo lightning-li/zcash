@@ -81,6 +81,7 @@ public:
     void generate_r1cs_witness();
 };
 
+// 比较两个位数组是否相等的工具类
 template<typename FieldT>
 class bit_vector_copy_gadget : public gadget<FieldT> {
 public:

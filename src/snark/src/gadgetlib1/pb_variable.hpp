@@ -74,7 +74,9 @@ public:
 template<typename FieldT>
 class pb_linear_combination : public linear_combination<FieldT> {
 public:
+    // 该实例代表的是否是一个变量
     bool is_variable;
+    // 该实例在 pb 中的位置，以 1 开始计数
     lc_index_t index;
 
     pb_linear_combination();

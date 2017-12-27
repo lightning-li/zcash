@@ -24,12 +24,20 @@ gadget<FieldT>(pb, annotation_prefix), digest_size(digest_size), input(input), i
 template<typename FieldT>
 void digest_selector_gadget<FieldT>::generate_r1cs_constraints()
 {
+    // 当 is_right 为 1 时，input = right
+    // 当 is_right 为 0 时，input  = left
     for (size_t i = 0; i < digest_size; ++i)
     {
         /*
           input = is_right * right + (1-is_right) * left
           input - left = is_right(right - left)
         */
+        // 假设 is_right 所代表的变量在 pb 中的位置为 is_right_index
+        // right.bits[i] 所代表的变量在 pb 中的位置为 right_i_index
+        // left.bits[i] 所代表的变量在 pb 中的位置为 left_i_index
+        // input.bits[i] 所代表的变量在 pb 中的位置为 input_i_index
+        // r1cs_constraint 的参数均为 liner_combination 类型
+        // 添加的等式约束为：{FieldT::one()(系数) * pb[is_right_index - 1]} * {FieldT::one() *  (pb[right_i_index] - pb[left_i_index])} = {FieldT::one() * (pb[input_i_index] - pb[left_i_index])}
         this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(is_right, right.bits[i] - left.bits[i], input.bits[i] - left.bits[i]),
                                      FMT(this->annotation_prefix, " propagate_%zu", i));
     }

@@ -1,7 +1,11 @@
+
+// note = <a_pk, v, rho, r>
 template<typename FieldT>
 class note_gadget : public gadget<FieldT> {
 public:
+    // 该 note 表示的价值
     pb_variable_array<FieldT> value;
+    
     std::shared_ptr<digest_variable<FieldT>> r;
 
     note_gadget(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
@@ -30,16 +34,20 @@ public:
 template<typename FieldT>
 class input_note_gadget : public note_gadget<FieldT> {
 private:
+    // 该 note 的支付公钥
     std::shared_ptr<digest_variable<FieldT>> a_pk;
     std::shared_ptr<digest_variable<FieldT>> rho;
 
     std::shared_ptr<digest_variable<FieldT>> commitment;
     std::shared_ptr<note_commitment_gadget<FieldT>> commit_to_inputs;
 
+    // 
     pb_variable<FieldT> value_enforce;
     std::shared_ptr<merkle_tree_gadget<FieldT>> witness_input;
 
+    // 表示 a_pk 生成的方式
     std::shared_ptr<PRF_addr_a_pk_gadget<FieldT>> spend_authority;
+    // 表示 nf 生成的方式
     std::shared_ptr<PRF_nf_gadget<FieldT>> expose_nullifiers;
 public:
     std::shared_ptr<digest_variable<FieldT>> a_sk;

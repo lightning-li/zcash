@@ -46,13 +46,15 @@ merkle_tree_check_read_gadget<FieldT, HashT>::merkle_tree_check_read_gadget(prot
     assert(tree_depth > 0);
     assert(tree_depth == address_bits.size());
 
+    // 在 pb 中插入 tree_depth - 1 个 digest_variable（256 bit），存放 Merkle 分支计算过程中得到的哈希值（即不包括根哈希值）
     for (size_t i = 0; i < tree_depth-1; ++i)
     {
         internal_output.emplace_back(digest_variable<FieldT>(pb, digest_size, FMT(this->annotation_prefix, " internal_output_%zu", i)));
     }
-
+    // 在 pb 中为根哈希值分配位置
     computed_root.reset(new digest_variable<FieldT>(pb, digest_size, FMT(this->annotation_prefix, " computed_root")));
 
+    // 准备生成等式约束的变量 hashers、propagators
     for (size_t i = 0; i < tree_depth; ++i)
     {
         block_variable<FieldT> inp(pb, path.left_digests[i], path.right_digests[i], FMT(this->annotation_prefix, " inp_%zu", i));
@@ -72,7 +74,10 @@ merkle_tree_check_read_gadget<FieldT, HashT>::merkle_tree_check_read_gadget(prot
                                                                 address_bits[tree_depth-1-i], path.left_digests[i], path.right_digests[i],
                                                                 FMT(this->annotation_prefix, " digest_selector_%zu", i)));
     }
-
+    // FieldT::capacity() 会返回有限域最大值的以位表示的长度，这里是 254
+    // bit_vector_copy_gadget 为判断两个位串是否相等的工具类
+    // read_successful 有 0 和 1 两种可能：当为 0 时，只将 source_bits 与 target_bits 打包，不做任何操作；
+    // 当为 1 时，将 source_bits 与 target_bits 打包，并将 source_bits 的值赋予 target_bits
     check_root.reset(new bit_vector_copy_gadget<FieldT>(pb, computed_root->bits, root.bits, read_successful, FieldT::capacity(), FMT(annotation_prefix, " check_root")));
 }
 
@@ -99,6 +104,12 @@ template<typename FieldT, typename HashT>
 void merkle_tree_check_read_gadget<FieldT, HashT>::generate_r1cs_witness()
 {
     /* do the hash computations bottom-up */
+    // propagators[i].generate_r1cs_witness 功能：先将叶子节点（当 i 为 tree_depth - 1 时）或者计算出的 internal_output[i] 的值，按照 address_bits[tree_depth-1-i] 的值，将其赋给 path，
+    // 即如果值为 0，则将其赋予 path.left_digests[i]，如果值为 1，则将其赋予给 path.right_digests[i]。
+    // hashers[i].generate_r1cs_witness 功能：将 path.left_digests[i] 与 path.right_digests[i] （其中 left_digests 与 right_digests 的值
+    // 在 merkle_authentication_path_variable.generate_witness 时根据 address_bits[tree_depth-1-i] 值赋予的，
+    // 与上述相反，值为 1 时，将传进来的分支数据赋给 left_digests；为 0 时，赋给 right_digests）进行 sha256_two_to_one_hash_gadget 计算，
+    // 将计算得出的值赋予 internal_output[i - 1] (该值将会在下一次循环时使用)。
     for (int i = tree_depth-1; i >= 0; --i)
     {
         /* propagate previous input */

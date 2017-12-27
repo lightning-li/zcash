@@ -112,15 +112,19 @@ std::istream& operator>>(std::istream &in, r1cs_constraint_system<FieldT> &cs);
 template<typename FieldT>
 class r1cs_constraint_system {
 public:
+    // 主要输入的长度（零知识证明中的输入明文）
     size_t primary_input_size;
+    // 辅助输入的长度（零知识证明中的输入见证 witness，用于生成零知识证据）
     size_t auxiliary_input_size;
-
+    // 存放所有的等式约束
     std::vector<r1cs_constraint<FieldT> > constraints;
 
     r1cs_constraint_system() : primary_input_size(0), auxiliary_input_size(0) {}
-
+    // 返回 primary_input_size
     size_t num_inputs() const;
+    // 返回 primary_input_size 与 auxiliary_input_size 之和
     size_t num_variables() const;
+    // 返回 constraints 的大小
     size_t num_constraints() const;
 
 #ifdef DEBUG
