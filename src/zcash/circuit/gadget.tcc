@@ -267,6 +267,11 @@ public:
         // fail instead of the verifier, in the event that
         // the roots of the inputs do not match the
         // treestate provided to the proving API.
+        // [SANITY CHECK] ：这一层检查可有可无，不会影响正确性；
+        // 当没有这一层 witness 的话，假设根哈希值是错误的，这个时候，验证者会验证失败；
+        // 当有这一层 witness 的话，假设根哈希值是错误的，这个时候，证明者自身就可以检查出来，避免将压力交于验证者
+        // 下面出现 [SANITY CHECK] 的作用是一样的
+        
         zk_merkle_root->bits.fill_with_bits(
             this->pb,
             uint256_to_bool_vector(rt)

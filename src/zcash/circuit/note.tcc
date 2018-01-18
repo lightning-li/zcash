@@ -198,6 +198,11 @@ public:
         // for any two valid notes in a given view of the
         // blockchain. See protocol specification for more
         // details.
+        // 强制发送者选取不同的 "rho" 值，进而得到不同的 nf(序列号)；
+        // rho = PRF(0, (i-1), 1, 0, 252-bit phi, 256-bit hsig)
+        // 由于 hsig = hsigCRH(randomSeed, nf_old_1, nf_old_2, joinSplitPubKey),
+        // 因为 nf_old_1/nf_old_2 是独一无二的，因此 hsig 是独一无二的，因此生成出来的 rho 是独一无二的
+        
         prevent_faerie_gold.reset(new PRF_rho_gadget<FieldT>(
             pb,
             ZERO,

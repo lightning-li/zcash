@@ -13,6 +13,7 @@ std::vector<unsigned char> convertIntToVectorLE(const uint64_t val_int) {
 }
 
 // Convert bytes into boolean vector. (MSB to LSB)
+// 11000000 => [1, 1, 0, 0, 0, 0, 0, 0]
 std::vector<bool> convertBytesVectorToVector(const std::vector<unsigned char>& bytes) {
     std::vector<bool> ret;
     ret.resize(bytes.size() * 8);
@@ -29,6 +30,7 @@ std::vector<bool> convertBytesVectorToVector(const std::vector<unsigned char>& b
 }
 
 // Convert boolean vector (big endian) to integer
+// [1, 1, 0, 0, 0, 0, 0, 0] => 11000000
 uint64_t convertVectorToInt(const std::vector<bool>& v) {
     if (v.size() > 64) {
         throw std::length_error ("boolean vector can't be larger than 64 bits");
